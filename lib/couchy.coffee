@@ -1,4 +1,5 @@
 http = require 'http'
+Proxy = require 'node-proxy'
 
 request = (options, cb) ->
     response = ''
@@ -13,6 +14,7 @@ request = (options, cb) ->
     req.write(options.data, 'utf8') if options.data?
     req.end()
 
+# Database class
 class Database
     constructor: (@db, options = {}) ->
         @host = options.host || 'localhost'
@@ -42,14 +44,14 @@ class Database
         request @options(method, path, data), cb
 
     # request helper methods
-    head: (path, cb) ->
-        @request('HEAD', cb, path)
-
     delete: (path, cb) ->
         @request('DELETE', cb, path)
 
     get: (path, cb) ->
         @request('GET', cb, path)
+
+    head: (path, cb) ->
+        @request('HEAD', cb, path)
 
     post: (path, data, cb) ->
         @request('POST', cb, path, data)
@@ -57,5 +59,25 @@ class Database
     put: (path, data, cb) ->
         @request('PUT', cb, path, data)
 
+# Document class
+class Document
+    constructor: (@db, @data) ->
+    get: (rec, name) ->
+        @data[name]
+    set: (rec, name, value) ->
+        @data[name] = value
+    enumerate: ->
+        Object.keys(@data)
+    has: (name) ->
+        name
+    delete: (name) ->
+        false
+    fix: ->
+        undefined
+
+# exports
 exports.db = (database, options) ->
     new Database database, options
+exports.Document = Document
+exports.doc = (database, data) ->
+    Proxy.create(new Document(database, data))
