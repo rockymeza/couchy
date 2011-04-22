@@ -1,0 +1,15 @@
+{
+  "name": "couchy",
+  "description": "CouchDB wrapper. Bare metal.",
+  "keywords": ["couchdb"],
+  "version": "0.0.1",
+  "repository": "git://github.com/rockymeza/couchy.git",
+  "author": "Rocky Meza <rockymeza@gmail.com> (http://rockymeza.com)",
+  "main": "index",
+  "directories": {
+    "lib": "lib"
+  },
+  "engines": {
+    "node": ">=0.4.5"
+  }
+}
