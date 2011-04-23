@@ -8,10 +8,10 @@ request = (options, cb) ->
         res.on 'data', (chunk) ->
             response += chunk
         res.on 'end', ->
-            response = JSON.parse(response) if response
+            response and response = JSON.parse(response)
             cb res.statusCode, response if cb?
 
-    req.write(options.data, 'utf8') if options.data?
+    req.write(options.data || '', 'utf8')
     req.end()
 
 # Database class
@@ -24,11 +24,12 @@ class Database
     # actions
     exists: (cb) ->
         @head '', (status, response) ->
-            cb(status == 200)
+            cb.call(this, status == 200)
+        this
 
     create: ->
-        @exists (bool) =>
-            @put '' if bool
+        @exists (bool) ->
+            @put '' if bool == false
 
     # requests
     options: (method, path, data) ->
@@ -44,7 +45,7 @@ class Database
         request @options(method, path, data), cb
 
     # request helper methods
-    delete: (path, cb) ->
+    destroy: (path, cb) ->
         @request('DELETE', cb, path)
 
     get: (path, cb) ->
@@ -62,22 +63,54 @@ class Database
 # Document class
 class Document
     constructor: (@db, @data) ->
-    get: (rec, name) ->
-        @data[name]
-    set: (rec, name, value) ->
-        @data[name] = value
-    enumerate: ->
-        Object.keys(@data)
-    has: (name) ->
-        name
+    save: (cb) ->
+        method = if @data._rev? then @db.put else @db.post
+        method.call @db, @data._id, @data, (status, response) ->
+            @data = response if status == 200
+            cb(status, response)
+    isNew: -> @data._rev?
+
+
+document_handler = (db, data) ->
+    doc = new Document(db, data)
+
+    getOwnPropertyDescriptor: (name) ->
+        desc = Object.getOwnPropertyDescriptor(doc.data, name)
+        if desc?
+            desc.configurable = true
+        desc
+    getOwnPropertyNames: ->
+        Object.getOwnPropertyNames(doc.data)
+    getPropertyNames: ->
+        Object.getPropertyNames(doc.data)
+    defineProperty: (name, desc) ->
+        Object.defineProperty(doc.data, name, desc)
     delete: (name) ->
-        false
-    fix: ->
-        undefined
+        delete doc.data[name]
+    fix: () ->
+        if (Object.isFrozen(doc.data))
+            Object.getOwnPropertyNames(doc.data).map (name) ->
+                Object.getOwnPropertyDescriptor(doc.data, name)
+        else
+            undefined
+    get: (rec, name) ->
+        doc[name] || doc.data[name]
+    set: (rec, name, value) ->
+        doc.data[name] = value
+    enumerate: ->
+        response = []
+        for key in doc.data
+            response.push key
+        response
+    keys: ->
+        Object.keys(doc.data)
+    has: (name) ->
+        name of doc.data
+    hasOwn: (name) ->
+        ({}).hasOwnProperty.call(doc.data, name)
 
 # exports
-exports.db = (database, options) ->
-    new Database database, options
-exports.Document = Document
-exports.doc = (database, data) ->
-    Proxy.create(new Document(database, data))
+exports.db = (db, options) ->
+    new Database db, options
+exports.doc = (db, data) ->
+    Proxy.create(document_handler(db, data))
