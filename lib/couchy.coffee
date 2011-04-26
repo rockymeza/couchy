@@ -18,9 +18,10 @@ class Database
             cb.call(this, res.statusCode == 200)
         this
 
-    create: ->
+    create: (cb) ->
         @exists (bool) ->
             @put '' if bool == false
+            cb() if cb?
 
     # requests
     options: (method, path, data) ->
