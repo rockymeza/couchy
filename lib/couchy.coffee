@@ -15,13 +15,16 @@ class Database
     # actions
     exists: (cb) ->
         @head '', (err, res, body) ->
-            cb.call(this, res.statusCode == 200)
+            cb res.statusCode == 200
         this
 
     create: (cb) ->
-        @exists (bool) ->
+        @exists (bool) =>
             @put '' if bool == false
-            cb() if cb?
+            cb(this) if cb
+    
+    delete: (cb) ->
+        @destroy '', cb
 
     # requests
     options: (method, path, data) ->
@@ -33,7 +36,8 @@ class Database
 
     request: (method, cb, path, data) ->
         request @options(method, path, data), (err, res, body) ->
-            cb(err, res, body)
+            # log?
+            cb(err, res, body) if cb
 
     # request helper methods
     destroy: (path, cb) ->

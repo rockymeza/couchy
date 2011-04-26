@@ -1,32 +1,37 @@
 require.paths.unshift(require('path').join(__dirname, '..', 'lib'))
 require 'coffee-script'
+request = require 'request'
 vows = require 'vows'
 assert = require 'assert'
 couchy = require 'couchy'
 # https://github.com/mikeal/request - saw this there, modified for my use
 makeId = -> Math.floor(Math.random()*100000000).toString()
-
-db = couchy.db('couchy-test').create()
-create_doc = -> couchy.doc db, {_id: makeId(), hello: 'hola', goodbye: 'adios'}
-
 assertStatus = (code ...) ->
     (err, res, body) ->
         assert.include code, res.statusCode
 
 vows.describe('Database Class')
 .addBatch
-    'request methods': ->
-        topic: couchy.db('couchy-test')
+    'request methods':
+        topic: couchy.db('couchy-db-test')
         '#exists':
-            'returns db object': (db) ->
+            'returns db object for chainability': (db) ->
                 return_value = db.exists ->
                 assert.equal return_value, db
         '#create':
-            'returns db object': (db) ->
+            'returns db object for chainability': (db) ->
                 return_value = db.create()
                 assert.equal return_value, db
+            '#delete': (db) ->
+                db.delete ->
+                    request {uri: 'http://localhost:5984/_add_dbs'}, (err, res, body) ->
+                        assert.equal body.indexOf('couchy-db-test'), -1
 
 .export(module)
+
+db = couchy.db('couchy-doc-test').create()
+create_doc = -> couchy.doc db, {_id: makeId(), hello: 'hola', goodbye: 'adios'}
+
 vows.describe('Document Class')
 .addBatch
     'Harmony Proxy':
