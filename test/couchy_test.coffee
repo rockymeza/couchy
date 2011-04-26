@@ -1,20 +1,20 @@
 require.paths.unshift(require('path').join(__dirname, '..', 'lib'))
-
 require 'coffee-script'
 vows = require 'vows'
 assert = require 'assert'
 couchy = require 'couchy'
+# https://github.com/mikeal/request - saw this there, modified for my use
+rand = -> Math.floor(Math.random()*100000000).toString()
 
 db = couchy.db('couchy-test').create()
+create_doc = -> couchy.doc db, {_id: rand(), hello: 'hola', goodbye: 'adios'}
 
-create_doc = -> couchy.doc db, {_id: 'myid', hello: 'hola', goodbye: 'adios'}
+assertStatus = (code ...) ->
+    (err, res, body) ->
+        assert.include code, res.statusCode
 
-assertStatus = (code) ->
-    (status, response) ->
-        assert.equal status, code
-
-vows.describe('Document is a Proxy').addBatch
-    'when trying to access the data':
+vows.describe('Document Proxy').addBatch
+    'when using the proxy':
         topic: create_doc
         'it lets me get data':
             topic: create_doc
@@ -53,13 +53,14 @@ vows.describe('Document is a Proxy').addBatch
             'delete huzzah': (doc) ->
                 delete doc.hello
                 assert.equal doc.hello, undefined
-    'when trying to use its methods':
+.export(module)
+vows.describe('Document model').addBatch
+    'when using the methods':
         topic: ->
             doc = create_doc()
             doc.save this.callback
-        'it lets me save it': assertStatus(200)
-
-
-
-
+            undefined
+        'assert no errors': (err, res, body) ->
+            assert.isNull err
+        'assert status': assertStatus(201) # created
 .export(module)

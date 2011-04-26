@@ -1,30 +1,21 @@
 http = require 'http'
 Proxy = require 'node-proxy'
-
-request = (options, cb) ->
-    response = ''
-    req = http.request options, (res) ->
-        res.setEncoding('utf8')
-        res.on 'data', (chunk) ->
-            response += chunk
-        res.on 'end', ->
-            response and response = JSON.parse(response)
-            cb res.statusCode, response if cb?
-
-    req.write(options.data || '', 'utf8')
-    req.end()
+request = require 'request'
+Log = require 'coloured-log'
+log = new Log(Log.DEBUG)
 
 # Database class
 class Database
     constructor: (@db, options = {}) ->
-        @host = options.host || 'localhost'
-        @port = options.port || 5984
-        @path = "/#{@db}/"
+        url = (options.protocol || 'http') + '://'
+        url += options.host || 'localhost'
+        url += ':' + (options.port || 5984)
+        @uri = url + "/#{@db}/"
 
     # actions
     exists: (cb) ->
-        @head '', (status, response) ->
-            cb.call(this, status == 200)
+        @head '', (err, res, body) ->
+            cb.call(this, res.statusCode == 200)
         this
 
     create: ->
@@ -34,15 +25,14 @@ class Database
     # requests
     options: (method, path, data) ->
         options =
-            host: @host
-            port: @port
-            headers: {'Content-Type': 'application/json'}
             method: method
-            path: @path + path
-            data: JSON.stringify(data)
+            headers: {'Content-Type': 'application/json', 'Referer': 'http://localhost'}
+            uri: @uri + path
+            json: data
 
     request: (method, cb, path, data) ->
-        request @options(method, path, data), cb
+        request @options(method, path, data), (err, res, body) ->
+            cb(err, res, body)
 
     # request helper methods
     destroy: (path, cb) ->
@@ -64,10 +54,10 @@ class Database
 class Document
     constructor: (@db, @data) ->
     save: (cb) ->
-        method = if @data._rev? then @db.put else @db.post
-        method.call @db, @data._id, @data, (status, response) ->
-            @data = response if status == 200
-            cb(status, response)
+        method = if @data._id? then @db.put else @db.post
+        method.call @db, @data._id, @data, (err, res, body) ->
+            @data = body if 200 <= res.statusCode <= 202
+            cb(err, res, body)
     isNew: -> @data._rev?
 
 
