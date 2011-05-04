@@ -10,6 +10,20 @@ assertStatus = (code ...) ->
     (err, res, body) ->
         assert.include code, res.statusCode
 
+vows.describe('Connection Class')
+.addBatch
+    '_all_dbs':
+        'get _all_dbs':
+            topic: ->
+                couchy.connection().get '_all_dbs', this.callback
+                undefined
+            'no error': (err, res, body) ->
+                assert.isNull err
+            'status': (err, res, body) ->
+                assert.equal res.statusCode, 200
+
+.export(module)
+
 vows.describe('Database Class')
 .addBatch
     'request methods':
@@ -22,9 +36,13 @@ vows.describe('Database Class')
             'returns db object for chainability': (db) ->
                 return_value = db.create()
                 assert.equal return_value, db
-            '#delete': (db) ->
-                db.delete ->
-                    request {uri: 'http://localhost:5984/_add_dbs'}, (err, res, body) ->
+            '#destroy': (db) ->
+                topic: (db) ->
+                    db.destroy this.callback
+                'worked':
+                    topic: ->
+                        request {uri: 'http://localhost:5984/_all_dbs'}, this.callback
+                    'not there': (err, res, body) ->
                         assert.equal body.indexOf('couchy-db-test'), -1
 
 .export(module)
@@ -57,7 +75,6 @@ vows.describe('Document Class')
                 test_length = 0
                 for key, val of doc
                     assert.isNotNull doc[key]
-                    assert.equal doc[key], false
                     ++test_length
 
                 assert.equal test_length, 3
