@@ -55,7 +55,7 @@ vows.describe('Document Class')
             topic: create_doc
             'count all elements': (doc) ->
                 test_length = 0
-                for key in doc
+                for key, val of doc
                     assert.isNotNull doc[key]
                     assert.equal doc[key], false
                     ++test_length
