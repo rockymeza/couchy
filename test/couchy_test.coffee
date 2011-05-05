@@ -96,9 +96,12 @@ vows.describe('Document Class')
         '#save':
             topic: ->
                 doc = create_doc()
-                doc.save this.callback
+                doc.save (e, r, b) => this.callback(e, r, b, doc)
                 undefined # force asynchronous testing
             'no errors': (err, res, body) ->
                 assert.isNull err
             'status': assertStatus(201) # created
+            '_rev is set': (err, res, body, doc) ->
+                assert.isNotNull doc._rev
+
 .export(module)
