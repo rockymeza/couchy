@@ -1,107 +1,50 @@
-require.paths.unshift(require('path').join(__dirname, '..', 'lib'))
 require 'coffee-script'
 request = require 'request'
 vows = require 'vows'
 assert = require 'assert'
-couchy = require 'couchy'
-# https://github.com/mikeal/request - saw this there, modified for my use
-makeId = -> Math.floor(Math.random()*100000000).toString()
-assertStatus = (code ...) ->
-    (err, res, body) ->
-        assert.include code, res.statusCode
 
-vows.describe('Connection Class')
+couchy = require '../lib/couchy'
+
+vows.describe('couchy')
 .addBatch
-    '_all_dbs':
-        'get _all_dbs':
-            topic: ->
-                couchy.connection().get '_all_dbs', this.callback
-                undefined
-            'no error': (err, res, body) ->
-                assert.isNull err
-            'status': (err, res, body) ->
-                assert.equal res.statusCode, 200
-
-.export(module)
-
-vows.describe('Database Class')
+  'database connection':
+    'generic':
+      topic: ->
+        couchy('couchy-db-test')
+      'returns a Database object': (db) ->
+        assert.typeOf db, 'object'
+        assert.instanceOf db, couchy.Database
+      'standard host, port, etc.': (db) ->
+        assert.equal db.url.hostname, 'localhost'
+        assert.equal db.url.port, 5984
+        assert.equal db.url.protocol, 'http:'
+    'complex':
+      topic: ->
+        couchy('https://user:pass@example.com:1234/yourdb')
+      'correct host, port, etc.': (db) ->
+        assert.equal db.url.hostname, 'example.com'
+        assert.equal db.url.port, 1234
+        assert.equal db.url.protocol, 'https:'
+        assert.equal db.url.auth, 'user:pass'
 .addBatch
-    'request methods':
-        topic: couchy.db('couchy-db-test')
-        '#exists':
-            'returns db object for chainability': (db) ->
-                return_value = db.exists ->
-                assert.equal return_value, db
-        '#create':
-            'returns db object for chainability': (db) ->
-                return_value = db.create()
-                assert.equal return_value, db
-            '#destroy': (db) ->
-                topic: (db) ->
-                    db.destroy this.callback
-                'worked':
-                    topic: ->
-                        request {uri: 'http://localhost:5984/_all_dbs'}, this.callback
-                    'not there': (err, res, body) ->
-                        assert.equal body.indexOf('couchy-db-test'), -1
-
-.export(module)
-
-db = couchy.db('couchy-doc-test').create()
-create_doc = -> couchy.doc db, {_id: makeId(), hello: 'hola', goodbye: 'adios'}
-
-vows.describe('Document Class')
-.addBatch
-    'Harmony Proxy':
-        '#get':
-            topic: create_doc
-            'object-style': (doc) ->
-                assert.equal doc.hello, 'hola'
-            'array-style': (doc) ->
-                assert.equal doc['goodbye'], 'adios'
-        
-        '#set':
-            topic: create_doc
-            'object-style': (doc) ->
-                doc.hello = 'bonjour'
-                assert.equal doc.hello, 'bonjour'
-            'array-style': (doc) ->
-                doc['goodbye'] = 'au revoir'
-                assert.equal doc['goodbye'], 'au revoir'
-
-        '#enumerate':
-            topic: create_doc
-            'count all elements': (doc) ->
-                test_length = 0
-                for key, val of doc
-                    assert.isNotNull doc[key]
-                    ++test_length
-
-                assert.equal test_length, 3
-
-        '#has':
-            topic: create_doc
-            'exists': (doc) ->
-                assert.equal 'hello' of doc, true
-            'does not exist': (doc) ->
-                assert.equal 'nonexistent key' of doc, false
-
-        '#delete':
-            topic: create_doc
-            'delete huzzah': (doc) ->
-                delete doc.hello
-                assert.equal doc.hello, undefined
-.addBatch
-    'Model methods':
-        '#save':
-            topic: ->
-                doc = create_doc()
-                doc.save (e, r, b) => this.callback(e, r, b, doc)
-                undefined # force asynchronous testing
-            'no errors': (err, res, body) ->
-                assert.isNull err
-            'status': assertStatus(201) # created
-            '_rev is set': (err, res, body, doc) ->
-                assert.isNotNull doc._rev
-
+  'setup methods':
+    '#exists':
+      topic: ->
+        couchy('couchy-nonexistent').exists this.callback
+      'no request error': (err, bool) ->
+        assert.isNull err
+      'database does not exist': (err, bool) ->
+        assert.isFalse bool
+    '#create':
+      topic: ->
+        couchy('couchy-db-test').create this.callback
+      'no error': (bool) ->
+        assert.isTrue bool
+      'created a database':
+        topic: ->
+          couchy('couchy-db-test').exists this.callback
+        'that actually exists': (err, bool) ->
+          assert.isTrue bool
+      teardown: ->
+        couchy('couchy-db-test').destroy()
 .export(module)
