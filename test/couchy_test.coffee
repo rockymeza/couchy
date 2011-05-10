@@ -5,6 +5,9 @@ assert = require 'assert'
 
 couchy = require '../lib/couchy'
 
+seed_db = couchy('couchy-test-seed')
+setup_db = couchy('couchy-test-setup')
+
 vows.describe('couchy')
 .addBatch
   'database connection':
@@ -37,14 +40,35 @@ vows.describe('couchy')
         assert.isFalse bool
     '#create':
       topic: ->
-        couchy('couchy-db-test').create this.callback
+        setup_db.create this.callback
       'no error': (bool) ->
         assert.isTrue bool
       'created a database':
         topic: ->
-          couchy('couchy-db-test').exists this.callback
+          setup_db.exists this.callback
         'that actually exists': (err, bool) ->
           assert.isTrue bool
-      teardown: ->
-        couchy('couchy-db-test').destroy()
+.addBatch
+  'seeding':
+    topic: ->
+      seed_db.create this.callback
+    'saves the seed':
+      topic: (bool) ->
+        doc_cb = ->
+          {foo: 'bar'}
+        seed_db.seed doc_cb, this.callback
+      'worked': (doc) ->
+        assert.isObject doc
+        assert.isNotNull doc._id
+      'created a seed':
+        topic: (doc) ->
+          seed_db.query 'get', doc._id, this.callback
+          undefined
+        'no error': (err, res, body) ->
+          assert.isNull err
+        'that actually exists': (err, res, body) ->
+          assert.equal res.statusCode, 200
+        'that is what I said it would be': (err, res, body) ->
+          assert.include body, 'foo'
+          assert.equal body.foo, 'bar'
 .export(module)
