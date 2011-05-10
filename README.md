@@ -5,7 +5,7 @@
      \___\___/ \__,_|\___|_| |_|\__, |
                                 |___/ 
 
-Couchy is a CouchDB wrapper for node and CoffeeScript.
+couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a developer-friendly, but minimal API.  I plan to make possible everything you can do with CouchDB, and add some helpers that I find useful.
 
 Connect to Database
 -------------------
@@ -15,17 +15,19 @@ Setup and Destroy
 -----------------
 `db.create([callback])`
 
-    db.create (bool) ->
+    db.create (err, bool) ->
       console.log 'created mydb'
 
 `db.destroy([callback])`
 
-    db.destroy ->
+    db.destroy (err) ->
       console.log 'destroyed mydb'
 
 Queries
 -------
-`db.query(method:string, [path:string, data:object], [callback(error, response, body)])`
+The query method has a flexible invocation.  All arguments after method are optional, but any of them can be included, so long as they remain in order.  Instead of having to do something like this, `db.query 'head', '', {}, ->`, you can simplify your call to `db.query 'head', ->`.
+
+`db.query(method:string, [path:string], [data:object], [callback(error, response, body)])`
 
     db.query 'get', 'someid', (err, res, body) ->
       console.log body
@@ -49,7 +51,13 @@ Views
 
 Seeding
 -------
+This is mainly for creating test data.  It takes a callback would should return 
+
 `db.seed(callback)`
 
     db.seed ->
       type: 'thing', name: 'Foo', bar: 'Bar', date: @randDate(), number: @rand()
+
+Module Exports
+--------------
+The couchy module exports a function that can be used to create a Database connection.  It also exports the Database class, which can be used for type checking.
