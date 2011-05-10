@@ -18,7 +18,8 @@
     "coloured-log": ">=0.9.4"
   },
   "devDependencies": {
-    "vows": ">=0.5.3"
+    "vows": ">=0.5.3",
+    "docco": "*"
   }
   "engines": {
     "node": ">=0.4.5"

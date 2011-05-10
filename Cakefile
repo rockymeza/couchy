@@ -1,15 +1,24 @@
 require 'coffee-script'
-couchy = require './lib/couchy'
 {exec} = require 'child_process'
+fs = require 'fs'
+
+couchy = require './lib/couchy'
 
 noop = ->
-
 destroyAll = ->
   couchy('couchy-test-seed').destroy()
   couchy('couchy-test-setup').destroy()
 
+logTask = (msg) ->
+  console.log "\n#{msg}"
+
+task 'docs', 'Generate documentation', (options) ->
+  logTask "Generating documentation"
+  exec 'docco lib/*.coffee'
+
+
 task 'test', 'Run the test suites', (options) ->
-  console.log "\nRunning Tests"
+  logTask "Running Tests"
   exec 'vows --spec test/*', (err, stderr, stdout) ->
     console.error err if err?
     console.error stderr
@@ -17,7 +26,7 @@ task 'test', 'Run the test suites', (options) ->
     destroyAll()
 
 task 'cleanup', 'Deletes the database', (options) ->
-  console.log "\nDeleting test database"
+  logTask "Deleting test database"
   destroyAll()
 
     
