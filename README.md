@@ -18,6 +18,7 @@ Setup and Destroy
 ```coffee-script
 db.create (err, bool) ->
   console.log 'created mydb'
+```
 
 `db.destroy([callback])`
 
