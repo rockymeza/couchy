@@ -74,5 +74,16 @@ db.seed 10, ->
 - `string(length = 10)` -- creates a random string using charcodes 65-122 (A-z)
 - `pick(choices)` -- picks randomly from an array
 
+## CouchApp -- sort of
+```coffee-script
+app = db.app
+
+app.views.thingsByName = (doc) ->
+  if doc.type == "thing"
+    emit(doc.name, doc)
+
+app.push()
+```
+
 ## Module Exports
 The couchy module exports a function that can be used to create a Database connection.  It also exports the Database and Seed classes, which can be used for type checking.
