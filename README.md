@@ -75,9 +75,9 @@ db.seed 10, ->
 ```
 ### Seeding Helpers
 
-- number(max = 100, precision = 0) -- creates a random number and rounds to a precision
-- string(length = 10) -- creates a random string using charcodes 65-122 (A-z)
-- pick(choices) -- picks randomly from an array
+- `number(max = 100, precision = 0)` -- creates a random number and rounds to a precision
+- `string(length = 10)` -- creates a random string using charcodes 65-122 (A-z)
+- `pick(choices)` -- picks randomly from an array
 
 ## Module Exports
 The couchy module exports a function that can be used to create a Database connection.  It also exports the Database class, which can be used for type checking.
