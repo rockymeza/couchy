@@ -53,7 +53,7 @@ db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
 ## Seeding
 This is mainly for creating test data.  It takes a callback would should return a document.
 
-`db.seed(doc_callback, callback || noop)`
+`db.seed(doc_callback, [callback])`
 
 ```coffee-script
 db.seed ->
@@ -62,7 +62,7 @@ db.seed ->
 
 This works for creating a document in the database.  What if I need a bunch?
 
-`db.seed(times, doc_callback, callback || noop)`
+`db.seed([times], doc_callback, [callback])`
 
 ```coffee-script
 db.seed 10, ->
