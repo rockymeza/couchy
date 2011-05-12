@@ -15,13 +15,16 @@ Setup and Destroy
 -----------------
 `db.create([callback])`
 
-    db.create (err, bool) ->
-      console.log 'created mydb'
+```coffee-script
+db.create (err, bool) ->
+  console.log 'created mydb'
 
 `db.destroy([callback])`
 
-    db.destroy (err) ->
-      console.log 'destroyed mydb'
+```coffee-script
+db.destroy (err) ->
+  console.log 'destroyed mydb'
+```
 
 Queries
 -------
@@ -29,25 +32,31 @@ The query method has a flexible invocation.  All arguments after method are opti
 
 `db.query(method:string, [path:string], [data:object], [callback(error, response, body)])`
 
-    db.query 'get', 'someid', (err, res, body) ->
-      console.log body
+```coffee-script
+db.query 'get', 'someid', (err, res, body) ->
+  console.log body
 
-    db.query 'post', 'someid', {foo: bar}, (err, res, body) ->
-      console.log body
+db.query 'post', 'someid', {foo: bar}, (err, res, body) ->
+  console.log body
+```
 
 Views
 -----
 `db.view(path:string, callback)`
 
-    db.view 'app/things', (err, res) ->
-      res.forEach (thing) ->
-        console.log thing
+```coffee-script
+db.view 'app/things', (err, res) ->
+  res.forEach (thing) ->
+    console.log thing
+```
 
 `db.view(path:string, options:object, callback)`
     
-    db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
-      res.forEach (thing) ->
-        console.log thing
+```coffee-script
+db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
+  res.forEach (thing) ->
+    console.log thing
+```
 
 Seeding
 -------
@@ -55,8 +64,10 @@ This is mainly for creating test data.  It takes a callback would should return
 
 `db.seed(doc_callback, callback || noop)`
 
-    db.seed ->
-      type: 'thing', name: 'Foo', bar: 'Bar', string: @string(), number: @number()
+```coffee-script
+db.seed ->
+  type: 'thing', name: 'Foo', bar: 'Bar', string: @string(), number: @number()
+```
 
 This works for creating a document in the database.  What if I need a bunch?
 
