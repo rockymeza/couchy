@@ -75,4 +75,4 @@ db.seed 10, ->
 - `pick(choices)` -- picks randomly from an array
 
 ## Module Exports
-The couchy module exports a function that can be used to create a Database connection.  It also exports the Database class, which can be used for type checking.
+The couchy module exports a function that can be used to create a Database connection.  It also exports the Database and Seed classes, which can be used for type checking.

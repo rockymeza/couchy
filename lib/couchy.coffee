@@ -76,7 +76,6 @@ class Database
     docs = []
 
     for i in [0...times]
-      # do we need to instantiate a seed everytime?
       docs.push doc_cb.call(seed)
 
     bulk =
