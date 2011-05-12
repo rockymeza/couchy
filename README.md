@@ -53,10 +53,19 @@ Seeding
 -------
 This is mainly for creating test data.  It takes a callback would should return 
 
-`db.seed(callback)`
+`db.seed(doc_callback, callback || noop)`
 
     db.seed ->
-      type: 'thing', name: 'Foo', bar: 'Bar', date: @randDate(), number: @rand()
+      type: 'thing', name: 'Foo', bar: 'Bar', string: @string(), number: @number()
+
+This works for creating a document in the database.  What if I need a bunch?
+
+`db.seed(times, doc_callback, callback || noop)`
+
+```coffee-script
+db.seed 10, ->
+  type: 'thing', name: 'Foo', string: @string(15), number: @number(144, 2), thing: @pick(['this', 'that'])
+```
 
 Module Exports
 --------------

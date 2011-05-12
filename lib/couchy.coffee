@@ -8,10 +8,18 @@ sys = require 'sys'
 noop = ->
 
 class Seed
-  constructor: (@doc) ->
+  number: (max = 100, precision = 0) ->
+    Math.round(Math.random() * max, precision)
+  
+  string: (length = 10) ->
+    ret = []
+    for i in [1..length]
+      ret.push(@number(57) + 65) # 65-122 (A-z)
 
-  rand: (max = 100, precision = 0) ->
-    Math.round(Math.random * max, precision)
+    String.fromCharCode.apply(null, ret)
+
+  pick: (choices) ->
+    choices[@number(choices.length - 1)]
 
 class Database
   constructor: (@url) ->
@@ -56,13 +64,27 @@ class Database
     @query 'delete', cb
 
   # seeding
-  seed: (doc_cb, cb) ->
-    doc = doc_cb.call(new Seed)
-    @query 'post', doc, (err, res, body) =>
-      if res.statusCode == 201
-        doc._id = body.id
-        doc._rev = body.rev
-      cb(err, doc)
+  seed: (times, doc_cb, cb) ->
+    if typeof(times) == 'function'
+      cb = doc_cb
+      doc_cb = times
+      times = 1
+
+    cb ?= noop
+
+    seed = new Seed
+    docs = []
+
+    for i in [0...times]
+      # do we need to instantiate a seed everytime?
+      docs.push doc_cb.call(seed)
+
+    bulk =
+      all_or_nothing: true
+      docs: docs
+
+    @query 'post', '_bulk_docs', bulk, (err, res, body) =>
+      cb(err, docs, body)
     undefined
 
 couchy = (uri) ->
@@ -70,6 +92,7 @@ couchy = (uri) ->
 
 # for type checking
 couchy.Database = Database
+couchy.Seed = Seed
 
 # export
 module.exports = couchy

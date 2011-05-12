@@ -6,6 +6,7 @@ assert = require 'assert'
 couchy = require '../lib/couchy'
 
 seed_db = couchy('couchy-test-seed')
+seed_db2 = couchy('couchy-test-seed2')
 setup_db = couchy('couchy-test-setup')
 
 vows.describe('couchy')
@@ -52,17 +53,17 @@ vows.describe('couchy')
   'seeding':
     topic: ->
       seed_db.create this.callback
-    'saves the seed':
+    'simple seed':
       topic: (bool) ->
         doc_cb = ->
           {foo: 'bar'}
         seed_db.seed doc_cb, this.callback
-      'worked': (doc) ->
-        assert.isObject doc
-        assert.isNotNull doc._id
+      'saved': (err, docs, res) ->
+        assert.isArray docs
+        assert.isNotNull res[0].id
       'created a seed':
-        topic: (doc) ->
-          seed_db.query 'get', doc._id, this.callback
+        topic: (docs, res) ->
+          seed_db.query 'get', res[0].id, this.callback
           undefined
         'no error': (err, res, body) ->
           assert.isNull err
@@ -71,4 +72,55 @@ vows.describe('couchy')
         'that is what I said it would be': (err, res, body) ->
           assert.include body, 'foo'
           assert.equal body.foo, 'bar'
+    'complex seed':
+      topic: (bool) ->
+        doc_cb = ->
+          {foo: 'bar', number: @number()}
+        seed_db.seed doc_cb, this.callback
+      'saved': (err, docs, res) ->
+        assert.isArray docs
+        assert.isNotNull res[0].id
+      'created a seed':
+        topic: (docs, res) ->
+          seed_db.query 'get', res[0].id, this.callback
+          undefined
+        'no error': (err, res, body) ->
+          assert.isNull err
+        'that actually exists': (err, res, body) ->
+          assert.equal res.statusCode, 200
+        'that is what I said it would be': (err, res, body) ->
+          assert.include body, 'foo'
+          assert.equal body.foo, 'bar'
+    'invocation errors':
+      'should not exist': ->
+        assert.doesNotThrow (-> seed_db.seed(-> {})), Error
+        assert.doesNotThrow (-> seed_db.seed(10, -> {})), Error
+        assert.doesNotThrow (-> seed_db.seed((-> {}), (->))), Error
+        assert.throws (-> seed_db.seed(10)), Error
+  'multiple seed':
+    topic: ->
+      seed_db2.create this.callback
+    '15 seed':
+      topic: (bool) ->
+        doc_cb = ->
+          {type: 'this', string: @string(15), money: @number(15, 2)}
+        seed_db2.seed 15, doc_cb, this.callback
+      'created seeds':
+        topic: ->
+          seed_db2.query 'get', '_all_docs', this.callback
+          undefined
+        '15 of them': (err, res, body) ->
+          assert.equal body.rows.length, 15
+  'seed helpers':
+    topic: ->
+      new couchy.Seed()
+    'number': (seed) ->
+      assert.isNumber seed.number()
+    'string': (seed) ->
+      assert.isString seed.string()
+
+      assert.equal seed.string(15).length, 15
+    'pick': (seed) ->
+      choices = ['Foo', 'Bar']
+      assert.include choices, seed.pick(choices)
 .export(module)
