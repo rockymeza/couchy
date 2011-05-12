@@ -1,9 +1,4 @@
-                          _           
-      ___ ___  _   _  ___| |__  _   _ 
-     / __/ _ \| | | |/ __| '_ \| | | |
-    | (_| (_) | |_| | (__| | | | |_| |
-     \___\___/ \__,_|\___|_| |_|\__, |
-                                |___/ 
+# couchy
 
 couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a developer-friendly, but minimal API.  I plan to make possible everything you can do with CouchDB, and add some helpers that I find useful.
 
