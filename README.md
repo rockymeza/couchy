@@ -51,7 +51,7 @@ db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
 ```
 
 ## Seeding
-This is mainly for creating test data.  It takes a callback would should return 
+This is mainly for creating test data.  It takes a callback would should return a document.
 
 `db.seed(doc_callback, callback || noop)`
 
