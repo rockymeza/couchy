@@ -5,9 +5,10 @@ assert = require 'assert'
 
 couchy = require '../lib/couchy'
 
+setup_db = couchy('couchy-test-setup')
 seed_db = couchy('couchy-test-seed')
 seed_db2 = couchy('couchy-test-seed2')
-setup_db = couchy('couchy-test-setup')
+app_db = couchy('couchy-test-app')
 
 vows.describe('couchy')
 .addBatch
@@ -123,4 +124,59 @@ vows.describe('couchy')
     'pick': (seed) ->
       choices = ['Foo', 'Bar']
       assert.include choices, seed.pick(choices)
+.addBatch
+  'apps':
+    topic: ->
+      cb = this.callback
+      app_db.create ->
+        app_db.seed 5, (-> type: 'thing', name: @string()), ->
+          app_db.seed 3, (-> type: 'notThings', number: @number()), cb
+      undefined
+    'noninterference': ->
+      app1 = app_db.app('app1')
+      app2 = app_db.app('app2')
+
+      app1.views.foo = 'bar'
+      assert.isUndefined app2.views.foo
+    'basic app':
+      topic: app_db.app('testApp')
+      'toJSON': (app) ->
+        to_json = app.toJSON()
+        assert.isObject to_json
+        for i in ['views', 'updates', 'shows', 'lists']
+          assert.include to_json, i
+      'toString':
+        topic: app_db.app('toStringApp')
+        'simple': (app) ->
+          assert.equal app.toString(), '{"views":{},"updates":{},"shows":{},"lists":{}}'
+        'function': (app) ->
+          assert.equal JSON.stringify(app.prepare({a: ->})), JSON.stringify({a: (->).toString()})
+        'nested objects': (app) ->
+          assert.equal JSON.stringify(app.prepare({a: {b: ->}})), JSON.stringify({a: {b: (->).toString()}})
+    'creating design document':
+      topic: app_db.app('test2App')
+      'add view': (app2) ->
+        app2.views.thingsByName =
+          map: (doc) ->
+            if doc.type == 'thing'
+              emit(doc.name, doc)
+        to_json = app2.toJSON()
+        assert.include to_json.views, 'thingsByName'
+        assert.include to_json.views.thingsByName, 'map'
+        assert.isFunction to_json.views.thingsByName.map
+      'push':
+        topic: (app2) ->
+          app2.push this.callback
+          undefined
+        'no errors': (err, res, body) ->
+          assert.isNull err
+        'is it there':
+          topic: ->
+            app_db.query 'get', '_design/test2App/_view/thingsByName', this.callback
+            undefined
+          'there is something': (err, res, body) ->
+            assert.isNull err
+            assert.equal body.total_rows, 5
+
+
 .export(module)

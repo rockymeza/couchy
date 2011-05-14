@@ -37,7 +37,7 @@ db.query 'post', 'someid', {foo: bar}, (err, res, body) ->
 `db.view(path:string, [callback])`
 
 ```coffee-script
-db.view 'app/things', (err, res) ->
+db.view 'myapp/things', (err, res) ->
   res.forEach (thing) ->
     console.log thing
 ```
@@ -45,13 +45,13 @@ db.view 'app/things', (err, res) ->
 `db.view(path:string, options:object, [callback])`
     
 ```coffee-script
-db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
+db.view 'myapp/thingsByName', {key: 'Foo'}, (err, res) ->
   res.forEach (thing) ->
     console.log thing
 ```
 
 ## Seeding
-This is mainly for creating test data.  It takes a callback would should return a document.
+This is mainly for creating test data.  It takes a callback should return a document.
 
 `db.seed(doc_callback, [callback(error, docs, body)])`
 
@@ -76,13 +76,14 @@ db.seed 10, ->
 
 ## CouchApp -- sort of
 ```coffee-script
-app = db.app
+myapp = db.app('myapp')
 
-app.views.thingsByName = (doc) ->
-  if doc.type == "thing"
-    emit(doc.name, doc)
+myapp._views.thingsByName = 
+  map: (doc) ->
+    if doc.type == "thing"
+      emit(doc.name, doc)
 
-app.push()
+myapp.push()
 ```
 
 ## Module Exports

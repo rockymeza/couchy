@@ -7,6 +7,19 @@ sys = require 'sys'
 # a default callback
 noop = ->
 
+class CouchyError
+  constructor: (@message, @response, @request) ->
+  name: 'CouchyError'
+
+requestOrError = (data, cb) ->
+  request data, (err, res, body) ->
+    throw err if err?
+
+    body = JSON.parse(body) if body
+    error = new CouchyError(body.error, body, data) if body.error?
+
+    cb(error, res, body)
+
 class Seed
   number: (max = 100, precision = 0) ->
     Math.round(Math.random() * max, precision)
@@ -20,6 +33,32 @@ class Seed
 
   pick: (choices) ->
     choices[@number(choices.length - 1)]
+
+class App
+  constructor: (@db, @name) ->
+    @views =  {}
+    @updates = {}
+    @shows = {}
+    @lists = {}
+    @id = '_design/' + @name
+
+  toJSON: ->
+    {views: @views, updates: @updates, shows: @shows, lists: @lists}
+
+  toString: ->
+    JSON.stringify(@prepare(@toJSON()))
+
+  prepare: (obj) ->
+    for i of obj
+      switch typeof obj[i]
+        when 'function'
+          obj[i] = obj[i].toString()
+        when 'object'
+          obj[i] = @prepare(obj[i])
+    obj
+
+  push: (cb) ->
+    @db.query 'put', @id, @prepare(@toJSON()), cb
 
 class Database
   constructor: (@url) ->
@@ -40,10 +79,7 @@ class Database
     if data? and typeof data != 'object'
       cb = data
     
-    request {uri: uri, method: method, json: data}, (err, res, body) ->
-      console.error err if err?
-      body = JSON.parse(body) if body
-      cb(err, res, body)
+    requestOrError {uri: uri, method: method, json: data}, cb
 
   # setup methods
   exists: (cb) ->
@@ -62,6 +98,9 @@ class Database
 
   destroy: (cb) ->
     @query 'delete', cb
+
+  app: (name) ->
+    new App(this, name)
 
   # seeding
   seed: (times, doc_cb, cb) ->
@@ -92,6 +131,7 @@ couchy = (uri) ->
 # for type checking
 couchy.Database = Database
 couchy.Seed = Seed
+couchy.App = App
 
 # export
 module.exports = couchy
