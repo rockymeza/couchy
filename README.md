@@ -6,14 +6,14 @@ couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a d
     db = require('couchy')('mydb')
 
 ## Setup and Destroy
-`db.create([callback])`
+`db.create([callback(err, created:bool)])`
 
 ```coffee-script
 db.create (err, bool) ->
   console.log 'created mydb'
 ```
 
-`db.destroy([callback])`
+`db.destroy([callback(error, response, body])`
 
 ```coffee-script
 db.destroy (err) ->
@@ -34,7 +34,7 @@ db.query 'post', 'someid', {foo: bar}, (err, res, body) ->
 ```
 
 ## Views
-`db.view(path:string, callback)`
+`db.view(path:string, [callback])`
 
 ```coffee-script
 db.view 'app/things', (err, res) ->
@@ -42,7 +42,7 @@ db.view 'app/things', (err, res) ->
     console.log thing
 ```
 
-`db.view(path:string, options:object, callback)`
+`db.view(path:string, options:object, [callback])`
     
 ```coffee-script
 db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
@@ -53,7 +53,7 @@ db.view 'app/thingsByName', {key: 'Foo'}, (err, res) ->
 ## Seeding
 This is mainly for creating test data.  It takes a callback would should return a document.
 
-`db.seed(doc_callback, [callback])`
+`db.seed(doc_callback, [callback(error, docs, body)])`
 
 ```coffee-script
 db.seed ->
@@ -62,7 +62,7 @@ db.seed ->
 
 This works for creating a document in the database.  What if I need a bunch?
 
-`db.seed([times], doc_callback, [callback])`
+`db.seed([times], doc_callback, [callback(error, docs, body)])`
 
 ```coffee-script
 db.seed 10, ->
