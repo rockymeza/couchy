@@ -87,6 +87,7 @@ myapp.push()
 ```
 
 Alternatively, if you want to be able to update your app:
+
 ```coffee-script
 db.app('myapp').pull (err, app) ->
   app.views.notThingsByName =
