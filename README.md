@@ -1,6 +1,6 @@
 # couchy
 
-couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a developer-friendly, but minimal API.  I plan to make possible everything you can do with CouchDB, and add some helpers that I find useful.
+couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a minimal, but developer-friendly API.  I plan to make possible everything you can do with CouchDB, and add some helpers that I find useful.
 
 ## Connect to Database
     db = require('couchy')('mydb')
@@ -34,28 +34,28 @@ db.query 'post', 'someid', {foo: bar}, (err, res, body) ->
 ```
 
 ## Views
-`db.view(path:string, [callback])`
+`db.view(path:string, [callback(error, response, body)])`
 
 ```coffee-script
-db.view 'myapp/things', (err, res) ->
+db.view 'myapp/things', (err, res, body) ->
   res.forEach (thing) ->
     console.log thing
 ```
 
-`db.view(path:string, options:object, [callback])`
+`db.view(path:string, options:object, [callback(error, response, body)])`
     
 ```coffee-script
-db.view 'myapp/thingsByName', {key: 'Foo', limit: 3}, (err, res) ->
+db.view 'myapp/thingsByName', {key: 'Foo', limit: 3}, (err, res, body) ->
   res.forEach (thing) ->
     console.log thing
 ```
 
 To post with keys, use this syntax:
 
-`db.view(path:string, options:array, [callback])`
+`db.view(path:string, options:array, [callback(error, response, body)])`
     
 ```coffee-script
-db.view 'myapp/thingsByName', ['myThing'], (err, res) ->
+db.view 'myapp/thingsByName', ['myThing'], (err, res, body) ->
   res.forEach (thing) ->
     console.log thing
 ```
