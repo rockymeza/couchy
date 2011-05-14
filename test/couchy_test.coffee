@@ -43,8 +43,8 @@ vows.describe('couchy')
     '#create':
       topic: ->
         setup_db.create this.callback
-      'no error': (bool) ->
-        assert.isTrue bool
+      'no error': (err, bool) ->
+        assert.isNull err
       'created a database':
         topic: ->
           setup_db.exists this.callback

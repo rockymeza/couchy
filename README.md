@@ -6,10 +6,10 @@ couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a m
     db = require('couchy')('mydb')
 
 ## Setup and Destroy
-`db.create([callback(err, created:bool)])`
+`db.create([callback(err, db)])`
 
 ```coffee-script
-db.create (err, bool) ->
+db.create (err, db) ->
   console.log 'created mydb'
 ```
 

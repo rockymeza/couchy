@@ -112,9 +112,9 @@ class Database
     @exists (err, bool) =>
       if not bool
         @query 'put', (err, res, body) ->
-          cb(err, res.statusCode == 201)
+          cb(err, this)
       else
-        cb(null, true)
+        cb(null, this)
     undefined
 
   destroy: (cb) ->
