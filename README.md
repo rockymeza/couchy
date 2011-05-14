@@ -45,7 +45,17 @@ db.view 'myapp/things', (err, res) ->
 `db.view(path:string, options:object, [callback])`
     
 ```coffee-script
-db.view 'myapp/thingsByName', {key: 'Foo'}, (err, res) ->
+db.view 'myapp/thingsByName', {key: 'Foo', limit: 3}, (err, res) ->
+  res.forEach (thing) ->
+    console.log thing
+```
+
+To post with keys, use this syntax:
+
+`db.view(path:string, options:array, [callback])`
+    
+```coffee-script
+db.view 'myapp/thingsByName', ['myThing'], (err, res) ->
   res.forEach (thing) ->
     console.log thing
 ```

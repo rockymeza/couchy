@@ -3,6 +3,7 @@ Proxy = require 'node-proxy'
 request = require 'request'
 url = require 'url'
 sys = require 'sys'
+qs = require 'querystring'
 
 # a default callback
 noop = ->
@@ -11,15 +12,6 @@ class CouchyError extends Error
   constructor: (@message, @response, @request) ->
   name: 'CouchyError'
 class RequestError extends CouchyError
-
-requestOrError = (data, cb) ->
-  request data, (err, res, body) ->
-    throw err if err?
-
-    body = JSON.parse(body) if body
-    error = new RequestError(body.error, body, data) if body.error?
-
-    cb(error, res, body)
 
 class Seed
   number: (max = 100, precision = 0) ->
@@ -102,18 +94,24 @@ class Database
     if data? and typeof data != 'object'
       cb = data
     
-    requestOrError {uri: uri, method: method, json: data}, cb
+    options = {uri: uri, method: method, json: data}
+
+    request options, (err, res, body) =>
+      throw err if err?
+      body = JSON.parse(body) if body
+      error = new RequestError(body.error, body, options) if body.error?
+      cb(error, res, body)
 
   # setup methods
   exists: (cb) ->
-    @query 'head', (err, res) =>
+    @query 'head', (err, res) ->
       cb(err, res.statusCode == 200)
     undefined
 
   create: (cb) ->
     @exists (err, bool) =>
       if not bool
-        @query 'put', (err, res, body) =>
+        @query 'put', (err, res, body) ->
           cb(err, res.statusCode == 201)
       else
         cb(null, true)
@@ -122,8 +120,26 @@ class Database
   destroy: (cb) ->
     @query 'delete', cb
 
+  # design document stuff
   app: (name) ->
     new App(this, name)
+
+  # sugar for views
+  viewPath: (path) ->
+    [doc, view] = path.split('/')
+    "_design/#{doc}/_view/" + view
+
+  view: (path, options, cb) ->
+    path = @viewPath(path)
+    switch typeof options
+      when 'function'
+        @query 'get', path, options
+      when 'object'
+        if options.length # array
+          @query 'post', path, {keys: options}, cb
+        else
+          path += '?' + qs.stringify(options)
+          @query 'get', path, cb
 
   # seeding
   seed: (times, doc_cb, cb) ->

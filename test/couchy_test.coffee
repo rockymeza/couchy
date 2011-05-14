@@ -129,8 +129,9 @@ vows.describe('couchy')
     topic: ->
       cb = this.callback
       app_db.create ->
-        app_db.seed 5, (-> type: 'thing', name: @string()), ->
-          app_db.seed 3, (-> type: 'notThings', number: @number()), cb
+        app_db.seed (->type: 'thing', name: 'myThing', foo: 'bar'), ->
+          app_db.seed 5, (-> type: 'thing', name: @string()), ->
+            app_db.seed 3, (-> type: 'notThings', number: @number()), cb
       undefined
     'noninterference': ->
       app1 = app_db.app('app1')
@@ -176,7 +177,7 @@ vows.describe('couchy')
             undefined
           'there is something': (err, res, body) ->
             assert.isNull err
-            assert.equal body.total_rows, 5
+            assert.equal body.total_rows, 6
     'retrieving an app':
       topic: ->
         app = app_db.app('retrievedApp')
@@ -201,4 +202,33 @@ vows.describe('couchy')
             undefined
           'no error': (err, res, body) ->
             assert.isNull err
+    'views':
+      topic: ->
+        app = app_db.app('viewsApp')
+        app.views.thingsByName =
+          map: (doc) ->
+            emit(doc.name, doc) if doc.type == 'thing'
+        app.push this.callback
+        undefined
+      'get':
+        topic: ->
+          app_db.view 'viewsApp/thingsByName', this.callback
+          undefined
+        'has the correct count': (err, res, body) ->
+          assert.equal body.total_rows, 6
+      'get with options':
+        topic: ->
+          app_db.view 'viewsApp/thingsByName', {limit: 3}, this.callback
+          undefined
+        'no error': (err, res, body) ->
+          assert.isNull err
+        'has only three': (err, res, body) ->
+          assert.equal body.rows.length, 3
+      'post with keys':
+        topic: ->
+          app_db.view 'viewsApp/thingsByName', ['myThing'], this.callback
+          undefined
+        'is mine': (err, res, body) ->
+          assert.equal body.rows[0].value.name, 'myThing'
+          assert.equal body.rows[0].value.foo, 'bar'
 .export(module)
