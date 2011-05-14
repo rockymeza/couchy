@@ -143,12 +143,12 @@ vows.describe('couchy')
       'toJSON': (app) ->
         to_json = app.toJSON()
         assert.isObject to_json
-        for i in ['views', 'updates', 'shows', 'lists']
+        for i in ['_id', '_rev', 'views', 'updates', 'shows', 'lists']
           assert.include to_json, i
       'toString':
         topic: app_db.app('toStringApp')
         'simple': (app) ->
-          assert.equal app.toString(), '{"views":{},"updates":{},"shows":{},"lists":{}}'
+          assert.equal app.toString(), '{"_id":"_design/toStringApp","views":{},"updates":{},"shows":{},"lists":{}}'
         'function': (app) ->
           assert.equal JSON.stringify(app.prepare({a: ->})), JSON.stringify({a: (->).toString()})
         'nested objects': (app) ->
@@ -177,6 +177,28 @@ vows.describe('couchy')
           'there is something': (err, res, body) ->
             assert.isNull err
             assert.equal body.total_rows, 5
-
-
+    'retrieving an app':
+      topic: ->
+        app = app_db.app('retrievedApp')
+        app.views.foo =
+          map: ->
+        app.push this.callback
+        undefined
+      'can pull':
+        topic: ->
+          app_db.app('retrievedApp').pull this.callback
+          undefined
+        'has a revision': (err, app) ->
+          assert.isNotNull app._rev
+          assert.isString app._rev
+        'is the same': (err, app) ->
+          assert.include app.views, 'foo'
+          assert.equal app.views.foo.map.toString(), (->).toString()
+        'can push':
+          topic: (app) ->
+            app.views.baz = 'qux'
+            app.push this.callback
+            undefined
+          'no error': (err, res, body) ->
+            assert.isNull err
 .export(module)

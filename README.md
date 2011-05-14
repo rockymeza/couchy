@@ -78,12 +78,23 @@ db.seed 10, ->
 ```coffee-script
 myapp = db.app('myapp')
 
-myapp._views.thingsByName = 
+myapp.views.thingsByName = 
   map: (doc) ->
     if doc.type == "thing"
       emit(doc.name, doc)
 
 myapp.push()
+```
+
+Alternatively, if you want to be able to update your app:
+```coffee-script
+db.app('myapp').pull (err, app) ->
+  app.views.notThingsByName =
+    map: (doc) ->
+      if doc.type == "notThings"
+        emit(doc.name, doc)
+
+  app.push()
 ```
 
 ## Module Exports

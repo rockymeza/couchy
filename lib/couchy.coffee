@@ -7,16 +7,17 @@ sys = require 'sys'
 # a default callback
 noop = ->
 
-class CouchyError
+class CouchyError extends Error
   constructor: (@message, @response, @request) ->
   name: 'CouchyError'
+class RequestError extends CouchyError
 
 requestOrError = (data, cb) ->
   request data, (err, res, body) ->
     throw err if err?
 
     body = JSON.parse(body) if body
-    error = new CouchyError(body.error, body, data) if body.error?
+    error = new RequestError(body.error, body, data) if body.error?
 
     cb(error, res, body)
 
@@ -40,10 +41,20 @@ class App
     @updates = {}
     @shows = {}
     @lists = {}
-    @id = '_design/' + @name
+    @_id = '_design/' + @name
+    @_rev = undefined
+
+  attributes: ['_id', '_rev', 'views', 'updates', 'shows', 'lists']
 
   toJSON: ->
-    {views: @views, updates: @updates, shows: @shows, lists: @lists}
+    hash = {}
+    for i in @attributes
+      hash[i] = this[i]
+    hash
+
+  fromJSON: (hash) ->
+    for i in @attributes
+      this[i] = hash[i]
 
   toString: ->
     JSON.stringify(@prepare(@toJSON()))
@@ -57,8 +68,20 @@ class App
           obj[i] = @prepare(obj[i])
     obj
 
+  unprepare: (obj) ->
+    for i of obj
+      if obj[i].substr(0, 8) == 'function'
+        obj[i] = eval(obj[i])
+    obj
+
   push: (cb) ->
-    @db.query 'put', @id, @prepare(@toJSON()), cb
+    @db.query 'put', @_id, @prepare(@toJSON()), cb
+
+  pull: (cb) ->
+    @db.query 'get', @_id, (err, res, body) =>
+      @fromJSON(body)
+      cb(err, this)
+
 
 class Database
   constructor: (@url) ->
