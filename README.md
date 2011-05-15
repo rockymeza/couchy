@@ -109,4 +109,10 @@ db.app('myapp').pull (err, app) ->
 ```
 
 ## Module Exports
-The couchy module exports a function that can be used to create a Database connection.  It also exports the Database and Seed classes, which can be used for type checking.
+The couchy module exports a function that can be used to create a Database connection.  It also exports these (perhaps for type checking?):
+
+  - couchy.Database
+  - couchy.App
+  - couchy.Seed
+  - couchy.CouchyError
+  - couchy.RequestError
