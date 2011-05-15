@@ -1,6 +1,6 @@
 {
   "name": "couchy",
-  "description": "CouchDB wrapper. Bare metal.",
+  "description": "CouchDB wrapper for CoffeeScript",
   "keywords": [
     "couchdb"
   ],
