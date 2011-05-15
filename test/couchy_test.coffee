@@ -50,6 +50,20 @@ vows.describe('couchy')
           setup_db.exists this.callback
         'that actually exists': (err, bool) ->
           assert.isTrue bool
+  'module':
+    topic: -> require('../lib/couchy')
+    'is a function': (couchy) ->
+      assert.isFunction couchy
+    'exports all classes': (couchy) ->
+      props = Object.keys(couchy)
+
+      assert.include props, 'CouchyError'
+      assert.include props, 'RequestError'
+      assert.include props, 'Seed'
+      assert.include props, 'App'
+      assert.include props, 'Database'
+
+      assert.equal props.length, 5
 .addBatch
   'seeding':
     topic: ->

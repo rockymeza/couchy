@@ -1,5 +1,3 @@
-http = require 'http'
-Proxy = require 'node-proxy'
 request = require 'request'
 url = require 'url'
 sys = require 'sys'
@@ -8,12 +6,15 @@ qs = require 'querystring'
 # a default callback
 noop = ->
 
-class CouchyError extends Error
+couchy = (uri) ->
+  new couchy.Database(url.parse(uri))
+
+class couchy.CouchyError extends Error
   constructor: (@message, @response, @request) ->
   name: 'CouchyError'
-class RequestError extends CouchyError
+class couchy.RequestError extends couchy.CouchyError
 
-class Seed
+class couchy.Seed
   number: (max = 100, precision = 0) ->
     Math.round(Math.random() * max, precision)
   
@@ -27,7 +28,7 @@ class Seed
   pick: (choices) ->
     choices[@number(choices.length - 1)]
 
-class App
+class couchy.App
   constructor: (@db, @name) ->
     @views =  {}
     @updates = {}
@@ -75,7 +76,7 @@ class App
       cb(err, this)
 
 
-class Database
+class couchy.Database
   constructor: (@url) ->
     @url.hostname ||= 'localhost'
     @url.port ||= 5984
@@ -99,7 +100,7 @@ class Database
     request options, (err, res, body) =>
       throw err if err?
       body = JSON.parse(body) if body
-      error = new RequestError(body.error, body, options) if body.error?
+      error = new couchy.RequestError(body.error, body, options) if body.error?
       cb(error, res, body)
 
   # setup methods
@@ -122,7 +123,7 @@ class Database
 
   # design document stuff
   app: (name) ->
-    new App(this, name)
+    new couchy.App(this, name)
 
   # sugar for views
   viewPath: (path) ->
@@ -150,7 +151,7 @@ class Database
 
     cb ?= noop
 
-    seed = new Seed
+    seed = new couchy.Seed
     docs = []
 
     for i in [0...times]
@@ -163,14 +164,6 @@ class Database
     @query 'post', '_bulk_docs', bulk, (err, res, body) =>
       cb(err, docs, body)
     undefined
-
-couchy = (uri) ->
-  new Database(url.parse(uri))
-
-# for type checking
-couchy.Database = Database
-couchy.Seed = Seed
-couchy.App = App
 
 # export
 module.exports = couchy
