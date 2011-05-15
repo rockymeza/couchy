@@ -12,10 +12,8 @@
   "author": "Rocky Meza <rockymeza@gmail.com> (http://rockymeza.com)",
   "main": "index",
   "dependencies": {
-    "coffee-script": ">=1.0.1",
-    "node-proxy": ">=0.3.2",
+    "coffee-script": "*",
     "request": ">=1.9.5",
-    "coloured-log": ">=0.9.4"
   },
   "devDependencies": {
     "vows": ">=0.5.3",
@@ -24,8 +22,5 @@
   "engines": {
     "node": ">=0.4.5"
   },
-  "test": "cake test",
-  "files": [
-    ""
-  ]
+  "test": "cake test"
 }
