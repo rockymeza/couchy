@@ -13,7 +13,7 @@
   "main": "index",
   "dependencies": {
     "coffee-script": "*",
-    "request": ">=1.9.5",
+    "request": ">=1.9.5"
   },
   "devDependencies": {
     "vows": ">=0.5.3",
