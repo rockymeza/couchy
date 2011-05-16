@@ -70,7 +70,7 @@ class couchy.App
   push: (cb) ->
     @db.query 'put', @_id, @prepare(@toJSON()), cb
 
-  pull: (cb) ->
+  pull: (cb = noop) ->
     @db.query 'get', @_id, (err, res, body) =>
       @fromJSON(body)
       cb(err, this)
