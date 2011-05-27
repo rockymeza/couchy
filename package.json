@@ -4,7 +4,7 @@
   "keywords": [
     "couchdb"
   ],
-  "version": "1.0.0-beta",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/rockymeza/couchy.git"
