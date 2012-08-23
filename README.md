@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/rockymeza/couchy.png)](http://travis-ci.org/rockymeza/couchy)
 # couchy
 
 couchy is a CouchDB wrapper for node and CoffeeScript.  couchy tries to have a minimal, but developer-friendly API.  I plan to make possible everything you can do with CouchDB, and add some helpers that I find useful.
